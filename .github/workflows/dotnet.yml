@@ -26,3 +26,50 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: |
+        docker build -t mynetapp:latest .
+        docker save mynetapp:latest | gzip > mynetapp.tar.gz
+    
+    - name: Copy Docker image to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ec2-52-221-198-40.ap-southeast-1.compute.amazonaws.com
+        username: ec2-user
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "mynetapp.tar.gz"
+        target: "/home/ec2-user/"
+    
+    - name: Deploy Docker container on EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ec2-52-221-198-40.ap-southeast-1.compute.amazonaws.com
+        username: ec2-user
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Stop and remove old container
+          docker stop mynetapp || true
+          docker rm mynetapp || true
+          
+          # Load new image
+          docker load < /home/ec2-user/mynetapp.tar.gz
+          
+          # Run new container
+          docker run -d \
+            --name mynetapp \
+            --restart unless-stopped \
+            -p 80:8080 \
+            mynetapp:latest
+          
+          # Cleanup
+          rm /home/ec2-user/mynetapp.tar.gz
+          docker image prune -f
