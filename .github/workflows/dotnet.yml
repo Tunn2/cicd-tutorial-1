@@ -49,11 +49,20 @@ jobs:
         source: "mynetapp.tar.gz"
         target: "/home/ec2-user/"
     
+    - name: Copy Docker image to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ec2-52-221-198-40.ap-southeast-1.compute.amazonaws.com
+        username: ubuntu  # ← Đổi từ ec2-user thành ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "mynetapp.tar.gz"
+        target: "/home/ubuntu/"  # ← Đổi từ /home/ec2-user/ thành /home/ubuntu/
+
     - name: Deploy Docker container on EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ec2-52-221-198-40.ap-southeast-1.compute.amazonaws.com
-        username: ec2-user
+        username: ubuntu  # ← Đổi từ ec2-user thành ubuntu
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           # Stop and remove old container
@@ -61,7 +70,7 @@ jobs:
           docker rm mynetapp || true
           
           # Load new image
-          docker load < /home/ec2-user/mynetapp.tar.gz
+          docker load < /home/ubuntu/mynetapp.tar.gz  # ← Đổi path
           
           # Run new container
           docker run -d \
@@ -71,5 +80,7 @@ jobs:
             mynetapp:latest
           
           # Cleanup
-          rm /home/ec2-user/mynetapp.tar.gz
+          rm /home/ubuntu/mynetapp.tar.gz  # ← Đổi path
           docker image prune -f
+
+
