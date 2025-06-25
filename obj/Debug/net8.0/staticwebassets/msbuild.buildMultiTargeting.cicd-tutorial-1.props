@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\cicd-tutorial-1.props" />
+</Project>

@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "dBWd/FvdNfSJof0375Y5HVhqQJcJ/v81xhJ1inguNVA=",
+  "Source": "cicd-tutorial-1",
+  "BasePath": "_content/cicd-tutorial-1",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
